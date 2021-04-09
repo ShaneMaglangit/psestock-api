@@ -13,8 +13,6 @@ import (
 )
 
 type Stock struct {
-	Name     string  `json:"name"`
-	Code     string  `json:"code"`
 	Date     string  `json:"date"`
 	Price    float32 `json:"price"`
 	Open     float32 `json:"open"`
@@ -25,7 +23,7 @@ type Stock struct {
 	Currency string  `json:"currency"`
 }
 
-var stocks = make([]Stock, 0)
+var stocks = make(map[string][]Stock, 0)
 
 func main() {
 	handle()
@@ -50,9 +48,7 @@ func init() {
 		high, _ := strconv.ParseFloat(entry[5], 32)
 		low, _ := strconv.ParseFloat(entry[6], 32)
 
-		stock := Stock{
-			Name:     entry[0],
-			Code:     entry[1],
+		data := Stock{
 			Date:     entry[2],
 			Price:    float32(price),
 			Open:     float32(open),
@@ -63,7 +59,12 @@ func init() {
 			Currency: "PHP",
 		}
 
-		stocks = append(stocks, stock)
+		if stock, ok := stocks[entry[1]]; ok {
+			stocks[entry[1]] = append(stock, data)
+			continue
+		}
+
+		stocks[entry[1]] = []Stock{data}
 	}
 }
 
@@ -79,12 +80,22 @@ func getStock(w http.ResponseWriter, r *http.Request) {
 
 	// Get the params from the request
 	params := mux.Vars(r)
-	code := params["code"]
+	code := strings.ToUpper(params["code"])
+	count, err := strconv.ParseInt(r.URL.Query().Get("count"), 10, 8)
+	if err != nil || count <= 0 {
+		count = int64(len(stocks[code]))
+	}
 
 	// Return the stock with the matching code
-	for _, stock := range stocks {
-		if stock.Code == strings.ToUpper(code) {
-			_ = json.NewEncoder(w).Encode(stock)
+	for k, v := range stocks {
+		if k == code {
+			_ = json.NewEncoder(w).Encode(
+				struct {
+					Code string  `json:"code"`
+					Data []Stock `json:"data"`
+				}{k, v[:count]},
+			)
+			break
 		}
 	}
 }
