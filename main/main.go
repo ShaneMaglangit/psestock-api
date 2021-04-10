@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -33,7 +34,12 @@ func main() {
 }
 
 func init() {
-	file, err := os.Open("main/stocks.csv")
+	path := os.Getenv("R_PATH")
+	csvPath := filepath.Join(path, "main/stocks.csv")
+
+	fmt.Println(path)
+
+	file, err := os.Open(csvPath)
 	if err != nil {
 		log.Fatalln(err)
 		return
