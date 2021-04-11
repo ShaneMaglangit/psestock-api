@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +33,12 @@ type RequestParams struct {
 	limit     int64
 }
 
-func getHandler(w http.ResponseWriter, r *http.Request) {
+func defaultHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintln(w, "<h1>Hello World</h1>")
+	log.Println("Started server at", os.Getenv("PORT"))
+}
+
+func stockHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("Endpoint hit: getStock")
 
 	// Get the params from the request

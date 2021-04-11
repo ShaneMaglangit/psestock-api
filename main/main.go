@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
-	"flag"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"net/http"
+	"os"
 )
 
 var mongoClient *mongo.Client
@@ -22,18 +22,29 @@ func main() {
 	}()
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/{code}", getHandler)
-	log.Println("Started server at 8000")
-	log.Fatal(http.ListenAndServe(":8000", router))
+	router.HandleFunc("/", defaultHandler)
+	router.HandleFunc("/{code}", stockHandler)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+		log.Printf("Defaulting to port %s", port)
+	}
+
+	log.Printf("Listening on port %s", port)
+	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
 func init() {
 	var err error
 
-	atlasUri := flag.String("atlasUri", "", "driver URI from the Atlas Dashboard")
-	flag.Parse()
+	atlasUri := os.Getenv("ATLAS_URI")
+	if atlasUri == "" {
+		log.Fatal("Cannot find ATLAS_URI environmental variable")
+		return
+	}
 
-	mongoClient, err = mongo.NewClient(options.Client().ApplyURI(*atlasUri))
+	mongoClient, err = mongo.NewClient(options.Client().ApplyURI(atlasUri))
 	if err != nil {
 		log.Fatal(err)
 		return
