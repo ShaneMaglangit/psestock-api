@@ -1,52 +1,53 @@
 package main
 
 import (
-	"encoding/csv"
+	"context"
+	"flag"
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"net/http"
-	"os"
-	"path/filepath"
 )
 
-var stocks = make(map[string][]Stock, 0)
+var mongoClient *mongo.Client
+var ctx context.Context
 
 func main() {
+	defer func() {
+		log.Println("Server closing...")
+		mongoClient.Disconnect(ctx)
+		ctx.Done()
+	}()
+
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/stocks/{code}", getHandler)
+	router.HandleFunc("/{code}", getHandler)
 	log.Println("Started server at 8000")
 	log.Fatal(http.ListenAndServe(":8000", router))
 }
 
 func init() {
-	path := os.Getenv("R_PATH")
-	csvPath := filepath.Join(path, "main/stocks.csv")
-	lines, err := readCsvFile(csvPath)
+	var err error
+
+	atlasUri := flag.String("atlasUri", "", "driver URI from the Atlas Dashboard")
+	flag.Parse()
+
+	mongoClient, err = mongo.NewClient(options.Client().ApplyURI(*atlasUri))
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
 
-	for _, entry := range lines {
-		data := parseLineToStock(entry)
-		if stock, ok := stocks[entry[1]]; ok {
-			stocks[entry[1]] = append(stock, data)
-			continue
-		}
-		stocks[entry[1]] = []Stock{data}
-	}
-}
-
-func readCsvFile(csvPath string) ([][]string, error) {
-	file, err := os.Open(csvPath)
+	ctx, _ = context.WithCancel(context.Background())
+	err = mongoClient.Connect(ctx)
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
+		return
 	}
 
-	lines, err := csv.NewReader(file).ReadAll()
+	err = mongoClient.Ping(ctx, readpref.Primary())
 	if err != nil {
-		return nil, err
+		log.Fatal(err)
 	}
-
-	return lines, nil
 }
