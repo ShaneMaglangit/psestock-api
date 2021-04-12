@@ -56,9 +56,4 @@ func init() {
 		log.Fatal(err)
 		return
 	}
-
-	//err = mongoClient.Ping(ctx, readpref.Primary())
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
 }
