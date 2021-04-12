@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"log"
 	"net/http"
 	"os"
@@ -22,6 +21,7 @@ func main() {
 	}()
 
 	router := mux.NewRouter().StrictSlash(true)
+	router.Handle("/favicon.ico", http.NotFoundHandler())
 	router.HandleFunc("/", defaultHandler)
 	router.HandleFunc("/{code}", stockHandler)
 
@@ -57,8 +57,8 @@ func init() {
 		return
 	}
 
-	err = mongoClient.Ping(ctx, readpref.Primary())
-	if err != nil {
-		log.Fatal(err)
-	}
+	//err = mongoClient.Ping(ctx, readpref.Primary())
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 }

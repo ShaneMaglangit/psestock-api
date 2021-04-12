@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -35,7 +34,6 @@ type RequestParams struct {
 
 func defaultHandler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, "<h1>Hello World</h1>")
-	log.Println("Started server at", os.Getenv("PORT"))
 }
 
 func stockHandler(w http.ResponseWriter, r *http.Request) {
@@ -52,11 +50,14 @@ func stockHandler(w http.ResponseWriter, r *http.Request) {
 		asc:       strings.ToUpper(r.URL.Query().Get("asc")) == "TRUE",
 		limit:     getLimit(r.URL.Query().Get("limit")),
 	}
+	_ = params
 
 	// Find the stock with the matching code
 	stocks := queryStockFromDb(params)
 
-	// Write data to response
+	// Write data to
+	w.Header().Add("Access-Control-Allow-Methods", "GET")
+	w.Header().Add("Access-Control-Allow-Headers", "Content-Type")
 	_ = json.NewEncoder(w).Encode(stocks)
 }
 
