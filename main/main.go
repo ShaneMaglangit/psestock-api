@@ -16,7 +16,7 @@ var ctx context.Context
 func main() {
 	defer func() {
 		log.Println("Server closing...")
-		mongoClient.Disconnect(ctx)
+		_ = mongoClient.Disconnect(ctx)
 		ctx.Done()
 	}()
 
