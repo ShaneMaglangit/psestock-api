@@ -1,4 +1,4 @@
-# THIS PROJECT IS ARCHIVED AND THE API IS CURRENTLY DOWN
+# **THIS PROJECT IS ARCHIVED AND THE API IS CURRENTLY DOWN**
 
 # PSE STOCKS API
 PSE Stocks API provides access to up-to-date stock prices of all the publicly listed companies in the Philippine Stock Exchange. It contains the historical data of the market as early as December 2011. All prices are updated daily after the PSE market closes at around 3:30 PM GMT +8 Philippine Time.
